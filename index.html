@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat bro</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            max-width: 600px;
+            margin: auto;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .chat-messages {
+            flex: 1;
+            padding: 10px;
+            overflow-y: auto;
+            border-bottom: 1px solid #ddd;
+        }
+        .chat-input {
+            display: flex;
+            border-top: 1px solid #ddd;
+            padding: 10px;
+            gap: 10px;
+        }
+        .chat-input input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .chat-input input[type="file"] {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .chat-input button {
+            padding: 10px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .chat-input button:hover {
+            background-color: #0056b3;
+        }
+        .message {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .message img.avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        .message-content {
+            background-color: #e0e0e0;
+            padding: 10px;
+            border-radius: 4px;
+            display: inline-block;
+            max-width: 80%;
+        }
+        .message img {
+            max-width: 100%;
+            margin-top: 10px;
+            border-radius: 4px;
+        }
+        .name-input-container {
+            text-align: center;
+            padding: 20px;
+        }
+        .name-input-container input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+        .name-input-container button {
+            padding: 10px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .name-input-container button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container" id="chatContainer">
+        <div class="name-input-container" id="nameInputContainer">
+            <input type="text" id="usernameInput" placeholder="Введите ваше имя" required>
+            <input type="file" id="avatarInput" accept="image/*">
+            <button onclick="setUsername()">Начать чат</button>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <!-- Сообщения будут добавляться сюда -->
+        </div>
+        <div class="chat-input">
+            <input type="text" id="messageInput" placeholder="Введите сообщение...">
+            <input type="file" id="imageInput" accept="image/*">
+            <button onclick="sendMessage()">Отправить</button>
+        </div>
+    </div>
+    <script>
+        let username = '';
+        let avatar = '';
+
+        function setUsername() {
+            const nameInput = document.getElementById('usernameInput');
+            const avatarInput = document.getElementById('avatarInput');
+            username = nameInput.value.trim();
+            const avatarFile = avatarInput.files[0];
+
+            if (username) {
+                if (avatarFile) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        avatar = event.target.result;
+                        document.getElementById('nameInputContainer').style.display = 'none';
+                        document.getElementById('chatContainer').style.display = 'flex';
+                    };
+                    reader.readAsDataURL(avatarFile);
+                } else {
+                    document.getElementById('nameInputContainer').style.display = 'none';
+                    document.getElementById('chatContainer').style.display = 'flex';
+                }
+            } else {
+                alert('Пожалуйста, введите ваше имя.');
+            }
+        }
+
+        function sendMessage() {
+            if (!username) {
+                alert('Пожалуйста, введите ваше имя.');
+                return;
+            }
+
+            const input = document.getElementById('messageInput');
+            const imageInput = document.getElementById('imageInput');
+            const message = input.value.trim();
+            const imageFile = imageInput.files[0];
+
+            if (message || imageFile) {
+                const messageContainer = document.createElement('div');
+                messageContainer.classList.add('message');
+                
+                const avatarImg = document.createElement('img');
+                avatarImg.classList.add('avatar');
+                avatarImg.src = avatar || 'https://kalix.club/uploads/posts/2022-12/1671719396_kalix-club-p-obichnii-belii-fon-instagram-4.jpg'; // Если аватарка не загружена, показать стандартное изображение
+
+                const messageContent = document.createElement('div');
+                messageContent.classList.add('message-content');
+                messageContent.innerHTML = `<span><strong>${username}:</strong> ${message}</span>`;
+                
+                if (imageFile) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const image = document.createElement('img');
+                        image.src = event.target.result;
+                        messageContent.appendChild(image);
+                    };
+                    reader.readAsDataURL(imageFile);
+                }
+
+                messageContainer.appendChild(avatarImg);
+                messageContainer.appendChild(messageContent);
+
+                const chatMessages = document.getElementById('chatMessages');
+                chatMessages.appendChild(messageContainer);
+                chatMessages.scrollTop = chatMessages.scrollHeight; // Прокрутка вниз
+
+                input.value = ''; // Очистка ввода сообщения
+                imageInput.value = ''; // Очистка ввода изображения
+            }
+        }
+
+        // Для отправки сообщения по нажатию клавиши Enter
+        document.getElementById('messageInput').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+                event.preventDefault(); // Предотвратить отправку формы
+            }
+        });
+    </script>
+</body>
+</html>
+
+
+
